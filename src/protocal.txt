@@ -1,0 +1,11 @@
+Just working out some thoughts about the packets
+
+
+-----------------------------------------------------------
+type char (1 byte) | message
+---------------------------------------
+
+connection message
+int length |Type c |  color (3 bytes) | name (max 32 chars (bytes)) Null termanated
+Meaning: I'd like to connect to the game. My name is ___ and my snake should be ____ color
+
