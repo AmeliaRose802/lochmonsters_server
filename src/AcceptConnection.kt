@@ -1,133 +1,182 @@
 import java.io.*
 import java.net.*
-import com.sun.xml.internal.ws.streaming.XMLStreamReaderUtil.close
-import java.lang.reflect.Array.getLength
 import java.net.DatagramPacket
-import java.net.InetAddress
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.net.InetSocketAddress
+import sun.nio.ch.IOUtil.configureBlocking
+import java.net.InetAddress
+import jdk.nashorn.internal.objects.ArrayBufferView.buffer
+import java.nio.channels.*
 
 
-const val portNum = 5555
+fun main() {
+    val s = Server();
+    s.init()
+    s.listen()
+}
 
-//Client and server exchange messages of set types each of which has a set format and length
-val messageLengths = mapOf('c' to 39);
+class Server() {
+    val portNum = 5555
 
-data class Vector2(val x : Float, val y : Float);
+    //Data classes
+    data class Vector2(var x: Float, var y: Float);
+    data class Color(val r: Short, val b: Short, val g: Short);
+    data class Client(val name: String, val color: Color, var pos: Vector2, var dir: Vector2);
 
-data class Color(val r : Short, val b: Short, val g: Short);
+    //Currently Connected clients (eg monsters in the game)
+    val clients = mutableMapOf<String, Client>()
 
-data class Client(val name: String, val color: Color, val pos : Vector2, val dir : Vector2);
+    //TODO: Assign uneque ID's instead of indexing by name
+    var nextID: Int = 0;
 
-val clients = mutableMapOf<String, Client>()
+    //Initalize the sockets
+   // val udpSocket = DatagramSocket(portNum);
+    //val tcpServerSocket = ServerSocket(portNum);
 
-var nextID : Int = 0;
+    val selector = Selector.open()
+    val serverSocketChannel = ServerSocketChannel.open()
+    val udpSocketChannel = DatagramChannel.open()
+    var buffer = ByteBuffer.allocate(256)
 
-fun main(args: Array<String>) {
-    println("Server is listening...")
-    getUDPPackets();
+    fun init(){
+        val host = InetAddress.getByName("localhost")
+
+        serverSocketChannel.configureBlocking(false)
+        serverSocketChannel.bind(InetSocketAddress(host, portNum))
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT)
+
+        udpSocketChannel.configureBlocking(false)
+        udpSocketChannel.bind(InetSocketAddress(host, portNum))
+        udpSocketChannel.register(selector, SelectionKey.OP_READ)
+        val key: SelectionKey? = null
+        buffer.order(ByteOrder.LITTLE_ENDIAN)
+    }
+
+    fun listen() {
+        println("Server is listening...")
+
+        while(true){
+            selector.select()
+            val selectedKeys = selector.selectedKeys()
+            val iter = selectedKeys.iterator()
+            while (iter.hasNext()) {
+
+                val key = iter.next()
+
+                if (key.isAcceptable) {
+                    println("New connection avable");
+                    val client = serverSocketChannel.accept()
+                    client.configureBlocking(false);
+                    client.register(selector, SelectionKey.OP_READ);
+                    println("Regestered new connection")
+                }
+                if(key.isReadable){
+
+                    println("Data to read");
 
 
-    /*
-    try {
-        val ss = ServerSocket(portNum)
-        val s = ss.accept()//establishes connection
-        println("Established Connection");
-        val dis = DataInputStream(s.getInputStream())
-        //val bis = BufferedInputStream(s.getInputStream())
+                    if(key.channel() is SocketChannel){
+                        getTCPPacket(key.channel() as SocketChannel)
+                    }
+                    else if(key.channel() is DatagramChannel){
+                        getUDPPackets(key.channel() as DatagramChannel);
+                    }
+                    buffer.clear();
+                }
 
-        val type = dis.read().toChar();
+                iter.remove()
+            }
+        }
+    }
+
+
+    fun getUDPPackets(socket : DatagramChannel) {
+        println("UDP");
+        socket.receive(buffer)
+        buffer.position(0);
+        val type = buffer.getChar();
+        println(String(buffer.array(), 0, buffer.array().size))
         println("type= $type")
-        val length = messageLengths[type]!!;
-
-
-        //Yes, I will be figuring out something more elegent later
-        if(type === 'c'){
-            AddClient(dis);
-            SendConnectReply(s);
+        when(type){
+            'p' ->{
+                println("Position update")
+                handlePosUpdate(buffer);
+            }
         }
-
-        ss.close()
-    } catch (e: Exception) {
-        println(e)
     }
-    */
 
-}
-
-
-fun getUDPPackets() {
-    val socket = DatagramSocket(portNum);
-    val buf = ByteArray(256)
-    var running = true
-
-    while (running) {
-        var packet = DatagramPacket(buf, buf.size)
-        socket.receive(packet)
-
-
-        val address = packet.address
-        val port = packet.port
-        packet = DatagramPacket(buf, buf.size, address, port)
-
-        //First byte of every packet indicates type
-        val type = String(packet.data, 0, 1).toCharArray()[0];
-
-        println("First bit " + type);
-        if(type == 'p'){
-            ProcessPosUpdate(packet.data);
+    fun getTCPPacket(socket : SocketChannel){
+        println("TCP");
+        socket.read(buffer);
+        buffer.position(0);
+        val type = buffer.getChar();
+        println(String(buffer.array(), 0, buffer.array().size))
+        println("type= $type")
+        when(type){
+            'c' -> {
+                println("Connection request")
+                val id = AddClient(buffer)
+                SendConnectReply(socket, id); //Probley should be checking if write will block but oh well
+            }
         }
-
-
-        val received = String(packet.data, 0, packet.length)
-        println(received)
-
-        if (received == "end") {
-            running = false
-            continue
-        }
-        socket.send(packet)
     }
-    socket.close()
-}
 
-fun ProcessPosUpdate(data : ByteArray){
 
-    val name = String(data, 1, 32).trim()
+    fun handlePosUpdate(data: ByteBuffer) {
+        val nameLength = data.short.toInt();
+        val nameBuffer = ByteArray(nameLength);
+        data.get(nameBuffer)
 
-    val buffer = ByteBuffer.wrap(data)
-    val xPos = buffer.getInt()
-    val yPos = buffer.getDouble()
-    println("name $name  x: $xPos y: $yPos");
-}
-//Add a new player to the game
-fun AddClient(dis : DataInputStream) : String{
-    val r = dis.readShort();
-    val g = dis.readShort();
-    val b = dis.readShort();
-    println("The color is $r $g $b");
+        val name = String(nameBuffer);
 
-    val name : ByteArray = ByteArray(32);
+        if (clients[name] == null) {
+            println("Unknown Client");
+            return;
+        }
 
-    dis.read(name)
+        clients[name]!!.pos.x = data.float;
+        clients[name]!!.pos?.y = data.float;
 
-    val playerName = String(name).trim();
-    println(playerName);
+        clients[name]!!.dir?.x = data.float;
+        clients[name]!!.dir?.y = data.float;
 
-    val currentID = nextID;
-    clients.put(playerName, Client(playerName, Color(r, g, b), Vector2(0f,0f), Vector2(0f,0f)))
-    println(clients[playerName]);
+        println(clients[name]);
+    }
 
-    nextID++;
+    //Add a new player to the game
+    fun AddClient(buffer: ByteBuffer): Int {
+        val r = buffer.short
+        val g = buffer.short
+        val b = buffer.short
+        println("The color is $r $g $b");
 
-    return playerName;
-}
+        val name: ByteArray = ByteArray(32);
 
-fun SendConnectReply(clientSocket : Socket){
-    val dos = DataOutputStream(clientSocket.getOutputStream())
-    dos.writeChar('c'.toInt())
-    dos.writeInt(10);
-    dos.writeInt(10);
-    println(dos.size());
-    dos.flush()
-    println("Data sent");
+        buffer.get(name);
+
+        val playerName = String(name).trim();
+        println(playerName);
+
+        val currentID = nextID;
+        clients.put(playerName, Client(playerName, Color(r, g, b), Vector2(0f, 0f), Vector2(0f, 0f)))
+        println(clients[playerName]);
+
+        nextID++;
+
+        return currentID;
+    }
+
+    fun SendConnectReply(clientSocket: SelectableChannel, id: Int) {
+        val reply = ByteBuffer.allocate(256);
+        reply.putChar('c');
+        reply.putInt(id)
+        reply.putFloat(10f);
+        reply.putFloat(10f);
+
+
+        val c = clientSocket as SocketChannel;
+        c.write(reply);
+        println("Data sent");
+    }
 }
