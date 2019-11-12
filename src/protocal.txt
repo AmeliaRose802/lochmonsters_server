@@ -13,3 +13,5 @@ Meaning: I'd like to connect to the game. My name is ___ and my snake should be 
 connection reply
 char c | id (int) 4 bytes | posX int | posY int
 Meaning: Ok you are in the game. You id is __ and your spawn position is x, x
+
+1 + 4 + 8*2 = 5+16 = 21
