@@ -10,8 +10,7 @@ import java.nio.channels.ServerSocketChannel
 import java.net.InetAddress
 import java.nio.channels.Selector
 import jdk.nashorn.internal.objects.ArrayBufferView.buffer
-
-
+import java.nio.channels.SocketChannel
 
 
 fun main() {
@@ -40,7 +39,7 @@ class Server() {
 
     val selector = Selector.open()
     val serverSocketChannel = ServerSocketChannel.open()
-
+    var buffer = ByteBuffer.allocate(256)
 
     fun main(args: Array<String>) {
 
@@ -82,6 +81,7 @@ class Server() {
         serverSocketChannel.bind(InetSocketAddress(host, portNum))
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT)
         val key: SelectionKey? = null
+        buffer.order(ByteOrder.LITTLE_ENDIAN)
     }
 
     fun listen() {
@@ -99,6 +99,27 @@ class Server() {
 
                 if (key.isAcceptable) {
                     println("New connection avable");
+                    val client = serverSocketChannel.accept()
+                    client.configureBlocking(false);
+                    client.register(selector, SelectionKey.OP_READ);
+                    println("Regestered new connection")
+                }
+                if(key.isReadable){
+                    println("Data to read");
+
+                    val socket : SocketChannel = key.channel() as SocketChannel
+
+                    val dis = DataInputStream(socket.socket().getInputStream())
+                    socket.read(buffer);
+                    buffer.position(0);
+                    val type = buffer.getChar();
+                    println(String(buffer.array(), 0, buffer.array().size))
+
+                    println("type= $type")
+
+                    when(type){
+                        'c' -> AddClient(buffer);
+                    }
                 }
 
                 iter.remove()
@@ -161,15 +182,15 @@ class Server() {
     }
 
     //Add a new player to the game
-    fun AddClient(dis: DataInputStream): String {
-        val r = dis.readShort();
-        val g = dis.readShort();
-        val b = dis.readShort();
+    fun AddClient(buffer: ByteBuffer): String {
+        val r = buffer.short
+        val g = buffer.short
+        val b = buffer.short
         println("The color is $r $g $b");
 
         val name: ByteArray = ByteArray(32);
 
-        dis.read(name)
+        buffer.get(name);
 
         val playerName = String(name).trim();
         println(playerName);
