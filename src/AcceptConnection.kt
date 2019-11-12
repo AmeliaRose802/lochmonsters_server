@@ -3,9 +3,21 @@ import java.net.*
 import java.net.DatagramPacket
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.channels.SelectionKey
+import java.net.InetSocketAddress
+import sun.nio.ch.IOUtil.configureBlocking
+import java.nio.channels.ServerSocketChannel
+import java.net.InetAddress
+import java.nio.channels.Selector
+import jdk.nashorn.internal.objects.ArrayBufferView.buffer
+
+
+
 
 fun main() {
-    Server().listen()
+    val s = Server();
+    s.init()
+    s.listen()
 }
 
 class Server() {
@@ -24,7 +36,11 @@ class Server() {
 
     //Initalize the sockets
     val udpSocket = DatagramSocket(portNum);
-    val tcpServerSocket = ServerSocket(portNum);
+    //val tcpServerSocket = ServerSocket(portNum);
+
+    val selector = Selector.open()
+    val serverSocketChannel = ServerSocketChannel.open()
+
 
     fun main(args: Array<String>) {
 
@@ -59,10 +75,35 @@ class Server() {
 
     }
 
+    fun init(){
+        val host = InetAddress.getByName("localhost")
+
+        serverSocketChannel.configureBlocking(false)
+        serverSocketChannel.bind(InetSocketAddress(host, portNum))
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT)
+        val key: SelectionKey? = null
+    }
+
     fun listen() {
         println("Server is listening...")
-        clients.put("AAAA", Client("AAAA", Color(0, 0, 0), Vector2(0f, 0f), Vector2(0f, 0f)))
-        getUDPPackets();
+        //clients.put("AAAA", Client("AAAA", Color(0, 0, 0), Vector2(0f, 0f), Vector2(0f, 0f)))
+        //getUDPPackets();
+
+        while(true){
+            selector.select()
+            val selectedKeys = selector.selectedKeys()
+            val iter = selectedKeys.iterator()
+            while (iter.hasNext()) {
+
+                val key = iter.next()
+
+                if (key.isAcceptable) {
+                    println("New connection avable");
+                }
+
+                iter.remove()
+            }
+        }
     }
 
     fun getUDPPackets() {
