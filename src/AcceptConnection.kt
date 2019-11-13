@@ -49,8 +49,8 @@ class Server() {
         udpSocketChannel.register(selector, SelectionKey.OP_READ)
         val key: SelectionKey? = null
         buffer.order(ByteOrder.LITTLE_ENDIAN)
-        clients.put(0, Client(Snake("Test", Color(11,17,19), 3, Vector2(0.5f, 1.5f), Vector2(0.0f, 0.0f))))
-        clients.put(1, Client(Snake("bob", Color(8,256,3), 5, Vector2(7.0f, 4.0f), Vector2(1.0f, 0.5f))))
+        clients.put(0, Client(Snake("Test", Color(255,17,19), 3, Vector2(0.5f, 1.5f), Vector2(0.0f, 0.0f))))
+        clients.put(1, Client(Snake("bob", Color(8,255,3), 5, Vector2(7.0f, 4.0f), Vector2(1.0f, 0.5f))))
         nextID++
     }
 
