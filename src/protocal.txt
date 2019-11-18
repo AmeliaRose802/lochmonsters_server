@@ -23,3 +23,7 @@ char o (1) | numSnakes (4) | Snake Data (60)
 Snake data (data for each indivual snake in the game)
 id (4) | string name (32) | length short (2) | short colorR (2) | short colorG (2) | short colorB (2) | posX int (4) | posY int (4) | dirX int (4) | dirY int (4) |
 32 + 2*4 + 4*5 = 60
+
+Update other players location
+char u (2) | int id (4) | posX float (4) | posY float (4) | dirX float (4) | dirY float (4)
+Length: 2+4*5 = Length: 22
