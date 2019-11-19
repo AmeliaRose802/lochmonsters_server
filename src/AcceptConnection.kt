@@ -3,11 +3,8 @@ import java.net.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.*
+import java.sql.Timestamp
 import kotlin.random.Random
-import jdk.nashorn.internal.objects.ArrayBufferView.buffer
-import java.net.DatagramPacket
-
-
 
 
 fun main() {
@@ -23,7 +20,7 @@ class Server() {
     data class Vector2(var x: Float, var y: Float);
     data class Color(val r: Short, val b: Short, val g: Short);
     data class Snake(val name: String, val color: Color, var length : Short, var pos: Vector2, var dir: Vector2);
-    data class Client(val snake : Snake, val tcpSocket: SocketChannel?, var udpAddress: InetSocketAddress?);
+    data class Client(val snake : Snake, val tcpSocket: SocketChannel?, var udpAddress: InetSocketAddress?, var mostRecentUDPUpdate : Long);
 
     //Currently Connected clients (eg monsters in the game)
     val clients = mutableMapOf<Int, Client>()
@@ -39,8 +36,10 @@ class Server() {
     val serverSocketChannel = ServerSocketChannel.open()
     val udpSocketChannel = DatagramChannel.open()
     var buffer = ByteBuffer.allocate(256)
+    var startTime : Long = 0;
 
     fun init() {
+
         val host = InetAddress.getByName("localhost")
 
         serverSocketChannel.configureBlocking(false)
@@ -52,13 +51,15 @@ class Server() {
         udpSocketChannel.register(selector, SelectionKey.OP_READ)
         val key: SelectionKey? = null
         buffer.order(ByteOrder.LITTLE_ENDIAN)
-        clients.put(0, Client(Snake("Test", Color(255,17,19), 3, Vector2(0.5f, 1.5f), Vector2(0.0f, 0.0f)), null, null))
-        clients.put(1, Client(Snake("bob", Color(8,255,3), 5, Vector2(7.0f, 4.0f), Vector2(1.0f, 0.5f)), null, null))
+        clients.put(0, Client(Snake("Test", Color(255,17,19), 3, Vector2(0.5f, 1.5f), Vector2(0.0f, 0.0f)), null, null, 0))
+        clients.put(1, Client(Snake("bob", Color(8,255,3), 5, Vector2(7.0f, 4.0f), Vector2(1.0f, 0.5f)), null, null, 0))
         nextID++
+
     }
 
     fun listen() {
         println("Server is listening...")
+        startTime = System.currentTimeMillis()
 
         while (true) {
             try {
@@ -75,22 +76,31 @@ class Server() {
                         client.configureBlocking(false);
                         client.register(selector, SelectionKey.OP_READ);
                     }
-                    if (key.isReadable) {
+                    try{
+                        if (key.isReadable) {
 
-                        if (key.channel() is SocketChannel) {
-                            getTCPPacket(key.channel() as SocketChannel, key)
-                        } else if (key.channel() is DatagramChannel) {
-                            getUDPPackets(key.channel() as DatagramChannel);
+                            if (key.channel() is SocketChannel) {
+                                getTCPPacket(key.channel() as SocketChannel, key)
+                            } else if (key.channel() is DatagramChannel) {
+                                getUDPPackets(key.channel() as DatagramChannel);
+                            }
+                            buffer.clear();
                         }
-                        buffer.clear();
+                    }catch(e: IOException){
+                        println("Error: $e");
+                        key.channel().close()
                     }
+
 
                     iter.remove()
                 }
             } catch (e: IOException) {
                 println("Error: $e");
             }
+
         }
+
+
     }
 
 
@@ -101,18 +111,32 @@ class Server() {
 
         val type = buffer.getChar();
         val id = buffer.getInt();
+        val timestamp = buffer.getLong();
+
+        val client : Client;
+
         if (clients[id] == null) {
             println("Unknown Client");
             return;
         }
         else{
             clients[id]!!.udpAddress = address;
+            client = clients[id]!!;
+        }
+
+        if(client.mostRecentUDPUpdate < timestamp){
+            client.mostRecentUDPUpdate = timestamp
+            println("Up to date packet");
+        }
+        else{
+            println("Out of date packet");
+            return;
         }
 
 
         when (type) {
             'p' -> {
-                handlePosUpdate(id, buffer);
+                handlePosUpdate(id, client, buffer);
             }
         }
 
@@ -136,17 +160,16 @@ class Server() {
     }
 
 
-    fun handlePosUpdate(id: Int, data: ByteBuffer) {
+    fun handlePosUpdate(id: Int, client : Client, data: ByteBuffer) {
 
-        clients[id]!!.snake.pos.x = data.float;
-        clients[id]!!.snake.pos?.y = data.float;
 
-        clients[id]!!.snake.dir?.x = data.float;
-        clients[id]!!.snake.dir?.y = data.float;
+        client.snake.pos.x = data.float;
+        client.snake.pos?.y = data.float;
 
-        println(clients[id]!!.snake);
+        client.snake.dir?.x = data.float;
+        client.snake.dir?.y = data.float;
 
-        sendPositionUpdate(id);
+        sendPositionUpdate(id, client);
 
     }
 
@@ -164,7 +187,7 @@ class Server() {
 
         val currentID = nextID;
         //Add the client with the socket linked to it. Don't set IP and port yet, thouse are for UDP
-        clients.put(currentID, Client(Snake(playerName, Color(r, g, b),3, Vector2(0f, 0f), Vector2(0f, 0f)), socket, null))
+        clients.put(currentID, Client(Snake(playerName, Color(r, g, b),3, Vector2(0f, 0f), Vector2(0f, 0f)), socket, null, 0))
 
         nextID++;
 
@@ -172,25 +195,25 @@ class Server() {
     }
 
     fun sendConnectReply(clientSocket: SelectableChannel, id: Int) {
-        val reply: ByteArray = ByteArray(14)
+        val reply: ByteBuffer = ByteBuffer.allocate(22)
+        reply.order(ByteOrder.LITTLE_ENDIAN)
+        val x: Int = Random.nextInt(0, 25); //Eventually this will pick a spot not near other snakes
+        val y: Int = Random.nextInt(0, 25);
 
-        val x: Int = Random.nextInt(0, 100); //Eventually this will pick a spot not near other snakes
-        val y: Int = Random.nextInt(0, 100);
-
-
-        reply[0] = 'c'.toByte()
-        reply[2] = id.toByte()
-        reply[6] = x.toByte()
-        reply[10] = y.toByte()
+        reply.putChar('c');
+        reply.putInt(id)
+        reply.putInt(x)
+        reply.putInt(y)
+        println("Game time = "+(System.currentTimeMillis() - startTime));
+        reply.putLong(System.currentTimeMillis() - startTime);
 
 
         val c = clientSocket as SocketChannel;
-        c.write(ByteBuffer.wrap(reply))
+        c.write(ByteBuffer.wrap(reply.array()))
     }
 
 
     fun sendAllOtherPlayerData(clientSocket: SelectableChannel, myID : Int){
-        println("Attempting to send other player data");
         val s = clientSocket as SocketChannel
         val c = ByteBuffer.allocate(4 + (60 * (clients.size -1)));
         c.order(ByteOrder.LITTLE_ENDIAN)
@@ -226,17 +249,18 @@ class Server() {
     }
 
     //Sends position update for client specified by id to all clients (including origional sender)
-    fun sendPositionUpdate(id : Int){
-        val c = ByteBuffer.allocate(22);
+    fun sendPositionUpdate(id : Int, client : Client){
+        val c = ByteBuffer.allocate(30);
         c.order(ByteOrder.LITTLE_ENDIAN)
 
         c.putChar('u')
 
         c.putInt(id)
-        c.putFloat(clients[id]!!.snake.pos.x)
-        c.putFloat(clients[id]!!.snake.pos.y)
-        c.putFloat(clients[id]!!.snake.dir.x)
-        c.putFloat(clients[id]!!.snake.dir.y)
+        c.putLong(System.currentTimeMillis() - startTime)
+        c.putFloat(client.snake.pos.x)
+        c.putFloat(client.snake.pos.y)
+        c.putFloat(client.snake.dir.x)
+        c.putFloat(client.snake.dir.y)
 
         for((id, client) in clients){
             if(client.udpAddress != null){
