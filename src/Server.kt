@@ -14,8 +14,8 @@ class Server(private val portNum: Int) {
 
     private val selector = Selector.open()
 
-    private val tcpHandler = TCPHandler(this);
-    private val udpHandler = UDPHandler(this);
+    protected val tcpHandler = TCPHandler(this);
+    public val udpHandler = UDPHandler(this);
 
     init {
 
@@ -48,7 +48,7 @@ class Server(private val portNum: Int) {
 
             for (key in selectedKeys) {
                 if (key.isAcceptable) {
-                    println("New connection avable");
+                    println("New connection");
                     val client: SocketChannel = serverSocketChannel.accept()
                     client.configureBlocking(false);
                     client.register(selector, SelectionKey.OP_READ);
@@ -66,14 +66,6 @@ class Server(private val portNum: Int) {
                 } catch (e: IOException) {
 
                     println("Error: $e")
-
-                    //Remove sockets and snakes that have terminated their connections
-                    if (key.channel() is SocketChannel) {
-                        val deadID = tcpHandler.getChannelID(key.channel() as SocketChannel)
-                        tcpHandler.tcpClients.remove(deadID)
-                        udpHandler.udpClients.remove(deadID)
-                        Game.snakes.remove(deadID);
-                    }
 
                     key.channel().close()
                 }

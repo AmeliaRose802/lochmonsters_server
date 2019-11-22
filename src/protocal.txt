@@ -35,3 +35,5 @@ Update other players location
 char u (2) | int id (4) | timestamp (8) | posX float (4) | posY float (4) | dirX float (4) | dirY float (4)
 Length: 2+4*5 = Length: 22+8 = 30
 
+EXIT -- TCP
+char e (2) Terminating Connection

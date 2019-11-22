@@ -1,106 +1,149 @@
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.channels.SelectableChannel
-import java.nio.channels.SelectionKey
 import java.nio.channels.SocketChannel
 import kotlin.random.Random
 
-class TCPHandler(val server: Server){
+class TCPHandler(val server: Server) {
     var tcpClients = mutableMapOf<Int, SocketChannel>()
-    var buffer = ByteBuffer.allocate(512);
+
 
     init {
-        buffer.order(ByteOrder.LITTLE_ENDIAN)
+
     }
 
     fun getTCPPacket(socket: SocketChannel) {
-        socket.read(buffer);
+        var buffer = ByteBuffer.allocate(512)
+        buffer.order(ByteOrder.LITTLE_ENDIAN)
+
+        val amountRead : Int = socket.read(buffer)
+
+        if(amountRead <= 0){
+            closeConnection(socket)
+            return
+        }
+
         buffer.flip()
 
 
-        try{
-            val type = buffer.getChar();
 
-            println("TCP Message of type $type receved")
+        try {
+            val type = buffer.getChar()
 
             when (type) {
                 'c' -> {
-                    println("Connection request")
                     val id = AddClient(buffer, socket)
-                    sendConnectReply(socket, id);
-                    sendAllOtherPlayerData(socket, id); //TODO: Ideally this would only send closest clients
+                    sendConnectReply(socket, id)
+                    sendAllOtherPlayerData(socket, id)
+                    sendNewClientData(id)
+                }
+                'e' -> {
+                    closeConnection(socket)
                 }
             }
 
-            buffer.clear()
-        }
-        catch( e : Exception){
+
+        } catch (e: Exception) {
             println("ERROR: $e")
         }
+        buffer.clear()
 
 
     }
+
+
+    fun closeConnection(socket: SocketChannel) {
+        tcpClients.filter { it.value == socket }.keys.forEach {
+            Game.snakes.remove(it)
+            server.udpHandler.udpClients.remove(it);
+            tcpClients.remove(it);
+        }
+
+        socket.close()
+        return;
+    }
+
 
     /*
     Find the ID assocated with a given socket
      */
-    fun getChannelID(socketChannel : SocketChannel) : Int{
+    fun getChannelID(socketChannel: SocketChannel): Int {
         return tcpClients.filter { it.value == socketChannel }.keys.first()
     }
 
     //Add a new player to the game
-    private fun AddClient(buffer: ByteBuffer, socket: SocketChannel) : Int{
+    private fun AddClient(buffer: ByteBuffer, socket: SocketChannel): Int {
 
-        val s = Snake();
-        s.buildFromByteBuffer(buffer);
-        Game.snakes[s.id] = s;
+        val s = Snake()
+        s.buildFromByteBuffer(buffer)
+        Game.snakes[s.id] = s
 
-        tcpClients[s.id] = socket;
+        tcpClients[s.id] = socket
 
-        return s.id;
+        return s.id
     }
 
 
     private fun sendConnectReply(clientSocket: SocketChannel, id: Int) {
         val reply: ByteBuffer = ByteBuffer.allocate(22)
         reply.order(ByteOrder.LITTLE_ENDIAN)
-        val x: Int = Random.nextInt(0, 25); //Eventually this will pick a spot not near other snakes
-        val y: Int = Random.nextInt(0, 25);
+        val x: Int = Random.nextInt(0, 25) //Eventually this will pick a spot not near other snakes
+        val y: Int = Random.nextInt(0, 25)
 
-        reply.putChar('c');
+        reply.putChar('c')
         reply.putInt(id)
         reply.putInt(x)
         reply.putInt(y)
-        reply.putLong(System.currentTimeMillis() - Game.startTime);
+        reply.putLong(System.currentTimeMillis() - Game.startTime)
 
-        reply.flip();
+        reply.flip()
         clientSocket.write(reply)
     }
 
 
-    private fun sendAllOtherPlayerData(clientSocket: SocketChannel, myID : Int){
+    private fun sendAllOtherPlayerData(clientSocket: SocketChannel, id: Int) {
 
-        val otherPlayersData = ByteBuffer.allocate(4 + (60 * (Game.snakes.size -1)));
+        val otherPlayersData = ByteBuffer.allocate(4 + (60 * (Game.snakes.size - 1)))
         otherPlayersData.order(ByteOrder.LITTLE_ENDIAN)
 
         otherPlayersData.putChar('o')
 
-        otherPlayersData.putShort((Game.snakes.size - 1).toShort());
+        otherPlayersData.putShort((Game.snakes.size - 1).toShort())
 
 
         for (snake in Game.snakes.values) {
             //Only send data for other clients
-            if(snake.id != myID) {
-                otherPlayersData.put(snake.getSnakeDataByteBuffer());
+            if (snake.id != id) {
+                otherPlayersData.put(snake.getSnakeDataByteBuffer())
             }
         }
 
-        otherPlayersData.flip();
+        otherPlayersData.flip()
 
-        clientSocket.write(otherPlayersData);
+        clientSocket.write(otherPlayersData)
+
     }
 
+    private fun sendNewClientData(id: Int) {
+        val newPlayer = ByteBuffer.allocate(62)
 
 
+        newPlayer.order(ByteOrder.LITTLE_ENDIAN)
+
+        newPlayer.putChar('n')
+        newPlayer.put(Game.snakes[id]!!.getSnakeDataByteBuffer())
+
+
+        broadcastToOthers(newPlayer, id)
+
+    }
+
+    /*
+    Send a message to all clients other then the one specified by the id passed in
+     */
+    private fun broadcastToOthers(message: ByteBuffer, id: Int) {
+        tcpClients.filter { it.key != id }.forEach {
+            it.value.write((message))
+        }
+    }
 
 }

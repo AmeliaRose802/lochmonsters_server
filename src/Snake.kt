@@ -52,10 +52,20 @@ data class Snake(var id: Int = -1, var name: String = "NONE", var color: Color =
     }
 
     fun updatePosition(posUpdate : ByteBuffer){
-        pos.x = posUpdate.float;
-        pos.y = posUpdate.float;
+        val posX = posUpdate.float;
+        val posY = posUpdate.float;
 
-        dir.x = posUpdate.float;
-        dir.y = posUpdate.float;
+        val dirX = posUpdate.float;
+        val dirY = posUpdate.float;
+
+        //Direction vector must be less then one so verify that it is correct before updating any values.
+        if(dirX < 1 && dirY < 1 ){
+            pos.x = posX
+            pos.y = posY
+
+            dir.x = dirX;
+            dir.y = dirY;
+        }
+
     }
 }

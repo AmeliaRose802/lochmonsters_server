@@ -68,27 +68,25 @@ class UDPHandler(val server: Server) {
 
     }
 
-    fun sendTerminationMessage(client: InetSocketAddress) {
+    private fun sendTerminationMessage(client: InetSocketAddress) {
         //TODO
     }
 
-    fun handlePosUpdate(id: Int, data: ByteBuffer) {
+    private fun handlePosUpdate(id: Int, data: ByteBuffer) {
         Game.snakes[id]?.updatePosition(data);
         sendPositionUpdate(id);
     }
 
-
     //Sends position update for client specified by id to all clients (including origional sender)
-    fun sendPositionUpdate(id: Int) {
-        val posData = Game.snakes[id]?.getPositionByteBuffer();
+    private fun sendPositionUpdate(id: Int) {
+        val posData = Game.snakes[id]!!.getPositionByteBuffer();
         //udpClients.filterKeys { it != id }.forEach{println(it)}
-        for (client in udpClients.values) {
-            if(client.id != id){
-                println("Sending to: " + client.udpAddress)
-                server.udpSocketChannel.send(posData, client.udpAddress);
-            }
+        broadcastToOthers(posData, id)
+    }
 
+    private fun broadcastToOthers(message: ByteBuffer, id: Int){
+        udpClients.filter { it.key != id }.forEach{
+            server.udpSocketChannel.send(message, it.value.udpAddress);
         }
-
     }
 }
