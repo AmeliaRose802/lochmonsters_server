@@ -31,17 +31,19 @@ class Server(private val portNum: Int) {
 
         //TODO: Remove later, just for testing
         var id = Game.getNextID();
-        Game.snakes[id] = Snake(id, "Test", Color(255, 17, 19), 3, Vector2(0.5f, 1.5f), Vector2(0.0f, 0.0f))
-        id = Game.getNextID();
-        Game.snakes[id] = Snake(id, "Test2", Color(0, 255, 1), 4, Vector2(0.5f, 1.5f), Vector2(0.6f, 0.5f))
+        //Game.gameManager.snakeManager.snakes[id] = Snake(id, "Test", Color(255, 17, 19), 3, Vector2(0.5f, 1.5f), Vector2(0.0f, 0.0f))
+        //id = Game.getNextID();
+        Game.gameManager.snakeManager.snakes[id] = Snake(id, "Test2", Color(0, 255, 1), 4, Vector2(0.5f, 1.5f), Vector2(0.6f, 0.5f))
     }
 
     /*
     Check if the sockets are readable and if so notify the TCP or UDP handler to deal with them
      */
     fun update() {
-        selector.select()
-        val selectedKeys = selector.selectedKeys()
+
+        selector.selectNow()
+        val selectedKeys  = selector.selectedKeys()
+        //val keysToRemove = List<SelectionKey>();
 
         try {
 
@@ -70,8 +72,10 @@ class Server(private val portNum: Int) {
                     key.channel().close()
                 }
 
-                selectedKeys.remove(key);
+                //selectedKeys.remove(key);
             }
+
+            selectedKeys.clear();
         } catch (e: IOException) {
             println("Error: $e");
         }

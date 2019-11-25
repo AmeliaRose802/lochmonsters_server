@@ -47,12 +47,14 @@ class UDPHandler(val server: Server) {
                 throw OutOfDatePacket("UDP Packet older then most recent message for snake");
             }
 
+
+
             udpClient.mostRecentUDPUpdate = timestamp
 
             //It is a valid packet
             when (type) {
                 'p' -> {
-                    handlePosUpdate(id, buffer);
+                    handlePosUpdate(id, buffer, timestamp);
                 }
             }
 
@@ -61,7 +63,6 @@ class UDPHandler(val server: Server) {
             sendTerminationMessage(address)
         }
         catch(e: OutOfDatePacket){
-            println(e);
         }
 
         buffer.clear()
@@ -72,15 +73,14 @@ class UDPHandler(val server: Server) {
         //TODO
     }
 
-    private fun handlePosUpdate(id: Int, data: ByteBuffer) {
-        Game.snakes[id]?.updatePosition(data);
+    private fun handlePosUpdate(id: Int, data: ByteBuffer, timestamp : Long) {
+        Game.gameManager.snakeManager.snakes[id]?.updatePosition(data, timestamp);
         sendPositionUpdate(id);
     }
 
     //Sends position update for client specified by id to all clients (including origional sender)
     private fun sendPositionUpdate(id: Int) {
-        val posData = Game.snakes[id]!!.getPositionByteBuffer();
-        //udpClients.filterKeys { it != id }.forEach{println(it)}
+        val posData = Game.gameManager.snakeManager.snakes[id]!!.getPositionByteBuffer();
         broadcastToOthers(posData, id)
     }
 

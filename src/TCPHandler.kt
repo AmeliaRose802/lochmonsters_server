@@ -53,7 +53,7 @@ class TCPHandler(val server: Server) {
 
     fun closeConnection(socket: SocketChannel) {
         tcpClients.filter { it.value == socket }.keys.forEach {
-            Game.snakes.remove(it)
+            Game.gameManager.snakeManager.snakes.remove(it)
             server.udpHandler.udpClients.remove(it);
             tcpClients.remove(it);
         }
@@ -75,7 +75,7 @@ class TCPHandler(val server: Server) {
 
         val s = Snake()
         s.buildFromByteBuffer(buffer)
-        Game.snakes[s.id] = s
+        Game.gameManager.snakeManager.snakes[s.id] = s
 
         tcpClients[s.id] = socket
 
@@ -86,8 +86,8 @@ class TCPHandler(val server: Server) {
     private fun sendConnectReply(clientSocket: SocketChannel, id: Int) {
         val reply: ByteBuffer = ByteBuffer.allocate(22)
         reply.order(ByteOrder.LITTLE_ENDIAN)
-        val x: Int = Random.nextInt(0, 25) //Eventually this will pick a spot not near other snakes
-        val y: Int = Random.nextInt(0, 25)
+        val x: Int = Random.nextInt(0, Game.fieldSize.x.toInt()) //Eventually this will pick a spot not near other snakes
+        val y: Int = Random.nextInt(0, Game.fieldSize.x.toInt())
 
         reply.putChar('c')
         reply.putInt(id)
@@ -102,15 +102,15 @@ class TCPHandler(val server: Server) {
 
     private fun sendAllOtherPlayerData(clientSocket: SocketChannel, id: Int) {
 
-        val otherPlayersData = ByteBuffer.allocate(4 + (60 * (Game.snakes.size - 1)))
+        val otherPlayersData = ByteBuffer.allocate(4 + (60 * (Game.gameManager.snakeManager.snakes.size - 1)))
         otherPlayersData.order(ByteOrder.LITTLE_ENDIAN)
 
         otherPlayersData.putChar('o')
 
-        otherPlayersData.putShort((Game.snakes.size - 1).toShort())
+        otherPlayersData.putShort((Game.gameManager.snakeManager.snakes.size - 1).toShort())
 
 
-        for (snake in Game.snakes.values) {
+        for (snake in Game.gameManager.snakeManager.snakes.values) {
             //Only send data for other clients
             if (snake.id != id) {
                 otherPlayersData.put(snake.getSnakeDataByteBuffer())
@@ -130,8 +130,8 @@ class TCPHandler(val server: Server) {
         newPlayer.order(ByteOrder.LITTLE_ENDIAN)
 
         newPlayer.putChar('n')
-        newPlayer.put(Game.snakes[id]!!.getSnakeDataByteBuffer())
-
+        newPlayer.put(Game.gameManager.snakeManager.snakes[id]!!.getSnakeDataByteBuffer())
+        newPlayer.flip();
 
         broadcastToOthers(newPlayer, id)
 
@@ -142,6 +142,7 @@ class TCPHandler(val server: Server) {
      */
     private fun broadcastToOthers(message: ByteBuffer, id: Int) {
         tcpClients.filter { it.key != id }.forEach {
+            println("Sending new client data to "+ it.value.remoteAddress)
             it.value.write((message))
         }
     }
