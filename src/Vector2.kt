@@ -28,4 +28,8 @@ data class Vector2(var x: Float, var y: Float){
     operator fun times(other : Vector2): Vector2 {
         return Vector2(x * other.x, y * other.y);
     }
+
+    fun getMag() : Float{
+        return Math.sqrt(Math.pow(x.toDouble(), 2.0) + Math.pow(y.toDouble(), 2.0)).toFloat();
+    }
 }

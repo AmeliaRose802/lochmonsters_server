@@ -37,3 +37,10 @@ Length: 2+4*5 = Length: 22+8 = 30
 
 EXIT -- TCP
 char e (2) Terminating Connection
+
+time messages
+char t
+
+time reply
+char t | current clock stamp
+length 10

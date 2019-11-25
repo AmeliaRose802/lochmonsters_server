@@ -30,7 +30,7 @@ class UDPHandler(val server: Server) {
 
         try {
             if (!Game.hasSnake(id)) {
-                throw ClientNotConnected("Game has never heard of this snake");
+                //throw ClientNotConnected("Game has never heard of this snake");
             }
 
             //IF the UDP client is not regestered, regester it
@@ -47,7 +47,7 @@ class UDPHandler(val server: Server) {
                 throw OutOfDatePacket("UDP Packet older then most recent message for snake");
             }
 
-
+            println("Game time: "+((System.currentTimeMillis() - Game.startTime)/1000f)+". Time stamp: "+timestamp/1000f+". Elapsed Time: " + (((System.currentTimeMillis() - Game.startTime) - timestamp)/1000f))
 
             udpClient.mostRecentUDPUpdate = timestamp
 

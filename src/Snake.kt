@@ -76,11 +76,22 @@ data class Snake(var id: Int = -1, var name: String = "NONE", var color: Color =
         val gameTime = System.currentTimeMillis() - Game.startTime;
         val elapsedTime = gameTime - timestamp;
 
-        println("Game time: "+((System.currentTimeMillis() - Game.startTime)/1000f)+". Time stamp: "+timestamp/1000f+". Elapsed Time: " + (((System.currentTimeMillis() - Game.startTime) - timestamp)/1000f))
 
         var predictedCurrentPosition = constrainToBounds( positionAtPacketSendTime + (velocity * (elapsedTime/1000f)));
-        //println("$name: Real: $positionAtPacketSendTime Expected: $predictedCurrentPosition")
+
+
+//        if((positionAtPacketSendTime - predictedCurrentPosition).getMag() > 5 ){
+//            println("Overly diffrent prediction diff: "+ (positionAtPacketSendTime - predictedCurrentPosition).getMag())
+//            println("$name real:      $positionAtPacketSendTime Dir x: $dirX y: $dirY")
+//            println("$name predicted: $predictedCurrentPosition")
+//            println("Game time: "+((System.currentTimeMillis() - Game.startTime)/1000f)+". Time stamp: "+timestamp/1000f+". Elapsed Time: " + (((System.currentTimeMillis() - Game.startTime) - timestamp)/1000f))
+//        }
+
+
+
+        //println("$name: Real: $positionAtPacketSendTime Expected: $predictedCurrentPosition. Elapsed time: $elapsedTime. Velocity $velocity")
         //It does not make sense to lerp to this since it is not being displayed to the users. Clients can do their own lerping
+
         pos = predictedCurrentPosition;
         predictedPos = pos;
         posLastSet = System.currentTimeMillis()
@@ -103,7 +114,7 @@ data class Snake(var id: Int = -1, var name: String = "NONE", var color: Color =
     }
 
     fun constrainToBounds(value : Vector2) : Vector2{
-        //return Vector2(value.x.coerceIn(-Game.fieldSize.x, Game.fieldSize.x), value.y.coerceIn(-Game.fieldSize.y, Game.fieldSize.y));
-        return value;
+        return Vector2(value.x.coerceIn(-Game.fieldSize.x, Game.fieldSize.x), value.y.coerceIn(-Game.fieldSize.y, Game.fieldSize.y));
+        //return value;
     }
 }

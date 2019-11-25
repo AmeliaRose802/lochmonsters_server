@@ -1,7 +1,7 @@
 import java.sql.Time
 
 val portNum = 5555;
-val MS_PER_FRAME = 16;
+val MS_PER_FRAME = 2;
 
 
 //This is a singleton
@@ -35,10 +35,8 @@ object Game{
             val amountToWait = MS_PER_FRAME -  (System.currentTimeMillis() - startFrame);
 
             if(amountToWait > 0){
-                Thread.sleep(amountToWait);
-            }
-            else{
-                println("Frame took more then 16ms to process.")
+                //Thread.sleep(amountToWait);
+                //TODO: EIther put server in seprate thread or work out some way to avoid out of date packets
             }
         }
     }

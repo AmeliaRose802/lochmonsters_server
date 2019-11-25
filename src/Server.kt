@@ -41,14 +41,17 @@ class Server(private val portNum: Int) {
      */
     fun update() {
 
-        selector.selectNow()
-        val selectedKeys  = selector.selectedKeys()
+
         //val keysToRemove = List<SelectionKey>();
 
         try {
-
+            selector.selectNow()
+            val selectedKeys  = selector.selectedKeys()
 
             for (key in selectedKeys) {
+                selector.selectNow()
+                val selectedKeys  = selector.selectedKeys()
+
                 if (key.isAcceptable) {
                     println("New connection");
                     val client: SocketChannel = serverSocketChannel.accept()
