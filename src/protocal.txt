@@ -44,3 +44,14 @@ char t
 time reply
 char t | current clock stamp
 length 10
+
+bye bitch
+char b
+Meaning - You are not connected. Stop sending UDP messages
+
+Spawn food
+char f | id (int) | xPos (float) | yPos (float)
+2 + 4*3 = 2 + 12 = 14
+
+Ate food
+char a | foodID (int) | snakeID (int)

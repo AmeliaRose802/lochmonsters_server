@@ -14,8 +14,8 @@ class Server(private val portNum: Int) {
 
     private val selector = Selector.open()
 
-    protected val tcpHandler = TCPHandler(this);
-    public val udpHandler = UDPHandler(this);
+    val tcpHandler = TCPHandler(this);
+    val udpHandler = UDPHandler(this);
 
     init {
 
@@ -41,46 +41,48 @@ class Server(private val portNum: Int) {
      */
     fun update() {
 
+        selector.selectNow()
+        var selectedKeys  = selector.selectedKeys()
 
-        //val keysToRemove = List<SelectionKey>();
 
-        try {
-            selector.selectNow()
-            val selectedKeys  = selector.selectedKeys()
+            try {
+                for (key in selectedKeys) {
 
-            for (key in selectedKeys) {
-                selector.selectNow()
-                val selectedKeys  = selector.selectedKeys()
 
-                if (key.isAcceptable) {
-                    println("New connection");
-                    val client: SocketChannel = serverSocketChannel.accept()
-                    client.configureBlocking(false);
-                    client.register(selector, SelectionKey.OP_READ);
-                }
-
-                try {
-                    if (key.isReadable) {
-                        //Handles both TCP and UDP input so see what we are dealing with
-                        if (key.channel() is SocketChannel) {
-                            tcpHandler.getTCPPacket(key.channel() as SocketChannel)
-                        } else if (key.channel() is DatagramChannel) {
-                            udpHandler.getUDPPackets(key.channel() as DatagramChannel);
-                        }
+                    if (key.isAcceptable) {
+                        println("New connection");
+                        val client: SocketChannel = serverSocketChannel.accept()
+                        client.configureBlocking(false);
+                        client.register(selector, SelectionKey.OP_READ);
                     }
-                } catch (e: IOException) {
 
-                    println("Error: $e")
+                    try {
+                        if (key.isReadable) {
+                            //Handles both TCP and UDP input so see what we are dealing with
+                            if (key.channel() is SocketChannel) {
+                                tcpHandler.getTCPPacket(key.channel() as SocketChannel)
+                            } else if (key.channel() is DatagramChannel) {
+                                udpHandler.getUDPPackets(key.channel() as DatagramChannel);
+                            }
+                        }
+                    } catch (e: IOException) {
 
-                    key.channel().close()
+                        println("Error: $e")
+
+                        key.channel().close()
+                    }
+
+                    //selectedKeys.remove(key);
                 }
 
-                //selectedKeys.remove(key);
+                selectedKeys.clear();
+            } catch (e: IOException) {
+                println("Error: $e");
             }
 
-            selectedKeys.clear();
-        } catch (e: IOException) {
-            println("Error: $e");
+            selector.selectNow()
+            selectedKeys  = selector.selectedKeys()
         }
-    }
+
+
 }

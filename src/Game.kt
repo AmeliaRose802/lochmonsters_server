@@ -1,7 +1,8 @@
 import java.sql.Time
+import java.util.*
 
 val portNum = 5555;
-val MS_PER_FRAME = 2;
+val MS_PER_FRAME = 20;
 
 
 //This is a singleton
@@ -13,7 +14,7 @@ object Game{
 
     //Private varibles
     private var nextID: Int = 0;
-    private val server : Server = Server(portNum);
+    val server : Server = Server(portNum);
 
     init{
         println("Creating the game")
@@ -22,6 +23,9 @@ object Game{
     fun loop(){
         startTime = System.currentTimeMillis();
         val gameRunning = true;
+
+        val timer = Timer()
+        timer.schedule(gameManager.foodManager, 0, 2000)
 
         println("Game is running...")
         println("Start time is "+ startTime);

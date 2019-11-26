@@ -80,12 +80,12 @@ data class Snake(var id: Int = -1, var name: String = "NONE", var color: Color =
         var predictedCurrentPosition = constrainToBounds( positionAtPacketSendTime + (velocity * (elapsedTime/1000f)));
 
 
-//        if((positionAtPacketSendTime - predictedCurrentPosition).getMag() > 5 ){
-//            println("Overly diffrent prediction diff: "+ (positionAtPacketSendTime - predictedCurrentPosition).getMag())
-//            println("$name real:      $positionAtPacketSendTime Dir x: $dirX y: $dirY")
-//            println("$name predicted: $predictedCurrentPosition")
-//            println("Game time: "+((System.currentTimeMillis() - Game.startTime)/1000f)+". Time stamp: "+timestamp/1000f+". Elapsed Time: " + (((System.currentTimeMillis() - Game.startTime) - timestamp)/1000f))
-//        }
+        if((positionAtPacketSendTime - predictedCurrentPosition).getMag() > 5 ){
+            println("Overly diffrent prediction diff: "+ (positionAtPacketSendTime - predictedCurrentPosition).getMag())
+            println("$name real:      $positionAtPacketSendTime Dir x: $dirX y: $dirY")
+            println("$name predicted: $predictedCurrentPosition")
+            println("Game time: "+((System.currentTimeMillis() - Game.startTime)/1000f)+". Time stamp: "+timestamp/1000f+". Elapsed Time: " + (((System.currentTimeMillis() - Game.startTime) - timestamp)/1000f))
+        }
 
 
 
@@ -116,5 +116,9 @@ data class Snake(var id: Int = -1, var name: String = "NONE", var color: Color =
     fun constrainToBounds(value : Vector2) : Vector2{
         return Vector2(value.x.coerceIn(-Game.fieldSize.x, Game.fieldSize.x), value.y.coerceIn(-Game.fieldSize.y, Game.fieldSize.y));
         //return value;
+    }
+
+    fun addSegment(){
+        length++;
     }
 }

@@ -42,6 +42,9 @@ class TCPHandler(val server: Server) {
                 't' -> {
                     sendTimeSync(socket);
                 }
+                'a' -> {
+                    Game.gameManager.foodManager.foodEaten(buffer);
+                }
             }
 
 
@@ -156,9 +159,14 @@ class TCPHandler(val server: Server) {
     /*
     Send a message to all clients other then the one specified by the id passed in
      */
-    private fun broadcastToOthers(message: ByteBuffer, id: Int) {
+    fun broadcastToOthers(message: ByteBuffer, id: Int) {
         tcpClients.filter { it.key != id }.forEach {
-            println("Sending new client data to "+ it.value.remoteAddress)
+            it.value.write((message))
+        }
+    }
+
+    fun broadcastToOthers(message: ByteBuffer) {
+        tcpClients.forEach {
             it.value.write((message))
         }
     }
