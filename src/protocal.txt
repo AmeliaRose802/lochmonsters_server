@@ -55,3 +55,6 @@ char f | id (int) | xPos (float) | yPos (float)
 
 Ate food
 char a | foodID (int) | snakeID (int)
+
+Food eaten
+char e | foodID (int) | snakeID (int)

@@ -16,6 +16,7 @@ class FoodManager : TimerTask() {
     }
 
     fun sendFoodPos(id: Int){
+        println("Sending food position")
         var snakeData = ByteBuffer.allocate(14);
         snakeData.order(ByteOrder.LITTLE_ENDIAN)
         snakeData.putChar('f')
@@ -42,6 +43,18 @@ class FoodManager : TimerTask() {
             //TODO: Tell client that they did not actually collect the food they thought they did
         }
     }
+
+    fun sendFoodEaten(foodID : Int, snakeID : Int){
+        var snakeData = ByteBuffer.allocate(14);
+        snakeData.order(ByteOrder.LITTLE_ENDIAN)
+        snakeData.putChar('e')
+        snakeData.putInt(foodID)
+        snakeData.putInt(snakeID)
+
+        snakeData.flip()
+        Game.server.tcpHandler.broadcastToOthers(snakeData, snakeID)
+    }
+
     //It might need to update stuff in the future, I don't know
     fun update(){}
 
