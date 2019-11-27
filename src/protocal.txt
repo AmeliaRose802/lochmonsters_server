@@ -53,8 +53,12 @@ Spawn food
 char f | id (int) | xPos (float) | yPos (float)
 2 + 4*3 = 2 + 12 = 14
 
+Get list of all food in game
+char z | numFood (short) | food (12)
+4 + numFood * 12
+
 Ate food
 char a | foodID (int) | snakeID (int)
 
 Food eaten
-char e | foodID (int) | snakeID (int)
+char a | foodID (int) | snakeID (int)

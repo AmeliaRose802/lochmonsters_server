@@ -31,9 +31,6 @@ class Server(private val portNum: Int) {
 
         //TODO: Remove later, just for testing
         var id = Game.getNextID();
-        //Game.gameManager.snakeManager.snakes[id] = Snake(id, "Test", Color(255, 17, 19), 3, Vector2(0.5f, 1.5f), Vector2(0.0f, 0.0f))
-        //id = Game.getNextID();
-        Game.gameManager.snakeManager.snakes[id] = Snake(id, "Test2", Color(0, 255, 1), 4, Vector2(0.5f, 1.5f), Vector2(0.6f, 0.5f))
     }
 
     /*
@@ -50,7 +47,6 @@ class Server(private val portNum: Int) {
 
 
                     if (key.isAcceptable) {
-                        println("New connection");
                         val client: SocketChannel = serverSocketChannel.accept()
                         client.configureBlocking(false);
                         client.register(selector, SelectionKey.OP_READ);
