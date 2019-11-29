@@ -110,6 +110,7 @@ connection reply
 | id    |   name      | length    | colorR   | colorB     | colorG    | xPosition | yPosition  | xDirection | yDirection |
 |---    |------------|-----------|-----------|------------|----------|-----------|-------------|------------|-------------|
 id (4) | string (32) | short (2) | short (2) | short (2) | short (2) | float (4)  | float (4) |  float (4) |  float (4) |
+
 **Length:** 60
 
 
