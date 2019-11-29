@@ -31,6 +31,7 @@ class Server(private val portNum: Int) {
 
         //TODO: Remove later, just for testing
         var id = Game.getNextID();
+
     }
 
     /*

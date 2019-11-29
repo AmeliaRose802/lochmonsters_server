@@ -62,3 +62,20 @@ char a | foodID (int) | snakeID (int)
 
 Food eaten
 char a | foodID (int) | snakeID (int)
+
+
+Chart
+TCP Messages From Server to Client
+Char | Name | Length | Content | Meaning
+c | Connect Reply | | |OK, You have been added to the game
+
+
+TCP Messages From Client to Server
+Char code | Length | Meaning
+
+
+UDP Messages From Server to Client
+Char code | Length | Meaning
+
+UDP Messages From Client to Server
+Char code | Length | Meaning

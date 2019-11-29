@@ -30,6 +30,9 @@ class TCPHandler(val server: Server) {
             val type = buffer.getChar()
 
             when (type) {
+                'a' -> {
+                    Game.gameManager.foodManager.foodEaten(buffer);
+                }
                 'c' -> {
                     val id = AddClient(buffer, socket)
                     sendConnectReply(socket, id)
@@ -37,12 +40,6 @@ class TCPHandler(val server: Server) {
                 }
                 'e' -> {
                     closeConnection(socket)
-                }
-                't' -> {
-                    sendTimeSync(socket);
-                }
-                'a' -> {
-                    Game.gameManager.foodManager.foodEaten(buffer);
                 }
             }
 
@@ -86,20 +83,6 @@ class TCPHandler(val server: Server) {
         tcpClients[s.id] = socket
 
         return s.id
-    }
-
-    private fun sendTimeSync(socket: SocketChannel){
-        val id = getChannelID(socket);
-        //println("Time sync request for: "+Game.gameManager.snakeManager.snakes[id]!!.name)
-
-        val reply: ByteBuffer = ByteBuffer.allocate(10)
-        reply.order(ByteOrder.LITTLE_ENDIAN)
-        reply.putChar('t');
-        reply.putLong(System.currentTimeMillis() - Game.startTime)
-
-        reply.flip()
-
-        socket.write(reply)
     }
 
     private fun sendConnectReply(clientSocket: SocketChannel, id: Int) {

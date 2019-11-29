@@ -5,7 +5,7 @@ import kotlin.random.Random
 
 class FoodManager : TimerTask() {
     var nextID = 0;
-    val MAX_FOOD = 300;
+    val MAX_FOOD = 200;
     val food = mutableMapOf<Int, Vector2>();
 
     override fun run() {
