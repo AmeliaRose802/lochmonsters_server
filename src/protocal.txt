@@ -21,10 +21,10 @@ char p (2) | id (int 4) | timestamp (long 8) | posX (float 4) | posY (float 4) |
 2+4+8+4*4 = 30
 
 Other Players Data (Innital TCP message with data for all snakes needing to be spawned in)
-char o (1) | numSnakes (4) | Snake Data (60)
+char o (1) | numSnakes (4) | SerializableDataClasses.Snake Data (60)
 60 * numSnakes
 
-Snake data (data for each indivual snake in the game)
+SerializableDataClasses.Snake data (data for each indivual snake in the game)
 id (4) | string name (32) | length short (2) | short colorR (2) | short colorG (2) | short colorB (2) | posX int (4) | posY int (4) | dirX int (4) | dirY int (4) |
 32 + 2*4 + 4*5 = 60
 
@@ -60,22 +60,22 @@ char z | numFood (short) | food (12)
 Ate food
 char a | foodID (int) | snakeID (int)
 
-Food eaten
+SerializableDataClasses.Food eaten
 char a | foodID (int) | snakeID (int)
 
 
 Chart
-TCP Messages From Server to Client
+TCP Messages From Networking.Server to Client
 Char | Name | Length | Content | Meaning
 c | Connect Reply | | |OK, You have been added to the game
 
 
-TCP Messages From Client to Server
+TCP Messages From Client to Networking.Server
 Char code | Length | Meaning
 
 
-UDP Messages From Server to Client
+UDP Messages From Networking.Server to Client
 Char code | Length | Meaning
 
-UDP Messages From Client to Server
+UDP Messages From Client to Networking.Server
 Char code | Length | Meaning

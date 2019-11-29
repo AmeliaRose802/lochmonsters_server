@@ -1,56 +1,41 @@
-import java.sql.Time
-import java.util.*
-
-val portNum = 5555;
-val MS_PER_FRAME = 20;
+import Networking.Server
+import SerializableDataClasses.Vector2
+import java.nio.ByteBuffer
 
 
 //This is a singleton
-object Game{
-    //Public varibles
-    var startTime : Long = 0;
-    var gameManager : GameManager = GameManager()
-    val fieldSize = Vector2(25f, 25f);
+object Game {
 
-    //Private varibles
+    //Private
+    private const val PORT_NUM = 5555;
     private var nextID: Int = 0;
-    val server : Server = Server(portNum);
 
-    init{
-        println("Creating the game")
-    }
+    //Public
+    var startTime: Long = 0;
+    val fieldSize = Vector2(25f, 25f);
+    val server: Server = Server(PORT_NUM);
+    var snakeManager = SnakeManager()
+    var foodManager = FoodManager()
 
-    fun loop(){
+    fun loop() {
         startTime = System.currentTimeMillis();
         val gameRunning = true;
 
-        val timer = Timer()
-        timer.schedule(gameManager.foodManager, 0, 2000)
-
         println("Game is running...")
-        println("Start time is "+ startTime);
 
-        while(gameRunning){
-            val startFrame = System.currentTimeMillis();
-
+        while (gameRunning) {
             server.update()
-            gameManager.update()
-
-            val amountToWait = MS_PER_FRAME -  (System.currentTimeMillis() - startFrame);
-
-            if(amountToWait > 0){
-                //Thread.sleep(amountToWait);
-                //TODO: EIther put server in seprate thread or work out some way to avoid out of date packets
-            }
+            snakeManager.update();
         }
     }
 
-    fun hasSnake(id : Int) : Boolean{
-        return gameManager.snakeManager.snakes[id] != null;
+    fun hasSnake(id: Int): Boolean {
+        return snakeManager.snakes[id] != null;
     }
 
-    fun getNextID() : Int{
+    fun getNextID(): Int {
         nextID++;
         return nextID;
     }
+
 }

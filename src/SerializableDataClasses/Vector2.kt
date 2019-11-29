@@ -1,9 +1,11 @@
+package SerializableDataClasses
+
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import javax.print.attribute.standard.MediaSize
 import kotlin.random.Random
 
 data class Vector2(var x: Float, var y: Float){
+
     fun getByteBuffer() : ByteBuffer{
         val buffer : ByteBuffer = ByteBuffer.allocate(8);
         buffer.order(ByteOrder.LITTLE_ENDIAN)
@@ -36,13 +38,11 @@ data class Vector2(var x: Float, var y: Float){
 
 
     companion object {
-        fun randInRange(range: Vector2) : Vector2{
+        const val BUFFER_LENGTH = 8;
+        fun randInRange(range: Vector2) : Vector2 {
             val xPos =  -range.x + Random.nextFloat() * (range.x*2);
             val yPos =  -range.y + Random.nextFloat() * (range.y*2);
             return Vector2(xPos, yPos);
         }
     }
-
-
-
 }

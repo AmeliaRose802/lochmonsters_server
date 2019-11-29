@@ -14,7 +14,7 @@
 | MessageName |char | Meaning |
 |---------- |----|-----------|
 |Connect | c | Request to join game
-|Ate Food | a | Snake ate food
+|Ate SerializableDataClasses.Food | a | SerializableDataClasses.Snake ate food
 |Termination | e | Client is leaving game
 ---
 #####Connect
@@ -34,7 +34,7 @@
 |----|------ |--------|
 |char (2) | int (4) | int (4)
 
-**Meaning:** Snake ___ ate food ___
+**Meaning:** SerializableDataClasses.Snake ___ ate food ___
 
 **Length:** 10 Bytes
 
@@ -55,7 +55,7 @@
 
 | MessageName |char | Meaning |
 |---------- |----|-----------|
-|Position Update | p | Snake changed direction 
+|Position Update | p | SerializableDataClasses.Snake changed direction 
 
 ---
 
@@ -81,7 +81,7 @@
 |---------- |----|-----------|
 |Connect Reply | c | Confirm that client has joined game
 |New Snake | n | A new snake has joined the game
-|New Food | f | Server has spawned new food
+|New Food | f | Networking.Server has spawned new food
 |Food Eaten | a | Another snake ate some food
 
 #####Connect Reply
@@ -90,7 +90,7 @@ connection reply
 
 | c        | id       | xPosition | yPosition | game start time | Game state
 |---------|--------- | ----------|-----------| ----------------|------------
-|char (2) | int (4) | int (4) | int (4) | long (8) | See below
+|char (2) | int (4) | float (4) | float (4) | long (8) | See below
 
 
 **Meaning:** Start the game with player at position xPosition, yPosition and set clock to game start time

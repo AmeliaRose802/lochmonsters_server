@@ -1,53 +1,55 @@
+import SerializableDataClasses.Food
+import SerializableDataClasses.Vector2
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.util.TimerTask
-import kotlin.random.Random
+import java.util.*
 
+//TODO: A lot of this feels like really gross leaky incapsulation with how it's derectly calling stuff on TCP manager, but that could just be paranoia
 class FoodManager : TimerTask() {
-    var nextID = 0;
-    val MAX_FOOD = 200;
-    val food = mutableMapOf<Int, Vector2>();
 
+    private var nextID = 0;
+    private val MAX_FOOD = 200;
+    private val FOOD_INTERVAL: Long = 2000;
+
+    val food = mutableMapOf<Int, Food>();
+
+    init {
+        val timer = Timer()
+        timer.schedule(this, 0, FOOD_INTERVAL)
+    }
+
+    //Spawn food at a regular interval until the maximum amount of food is reached
     override fun run() {
-        //If the amount of food got too ridiculus it could cause glitches
-        if(food.size < MAX_FOOD){
-            val foodPos = Vector2.randInRange(Game.fieldSize)
-            food[nextID] = foodPos;
+        if (food.size < MAX_FOOD) {
+            food[nextID] = Food(nextID, Vector2.randInRange(Game.fieldSize));
             sendFoodPos(nextID);
-
             nextID++;
         }
     }
 
-    fun sendFoodPos(id: Int){
+    private fun sendFoodPos(id: Int) {
+
         var snakeData = ByteBuffer.allocate(14);
         snakeData.order(ByteOrder.LITTLE_ENDIAN)
         snakeData.putChar('f')
-        snakeData.putInt(id);
-        snakeData.put(food[nextID]!!.getByteBuffer())
-
+        snakeData.put(food[id]!!.getByteBuffer())
         snakeData.flip()
-        Game.server.tcpHandler.broadcastToOthers(snakeData);
+        Game.server.tcpHandler.broadcast(snakeData);
     }
 
-    fun foodEaten(message : ByteBuffer){
-        val foodID = message.getInt();
-        val snakeID = message.getInt();
+    fun foodEaten(message: ByteBuffer) {
+        val foodID = message.int;
+        val snakeID = message.int;
 
-        if(food.containsKey(foodID) && Game.gameManager.snakeManager.snakes.containsKey(snakeID)){
+        println("Got message about food id = $foodID snakeID = $snakeID")
+        if (food.containsKey(foodID) && Game.snakeManager.snakes.containsKey(snakeID)) {
             food.remove(foodID);
-            Game.gameManager.snakeManager.snakes[snakeID]!!.addSegment()
+            Game.snakeManager.snakes[snakeID]!!.addSegment()
             sendFoodEaten(foodID, snakeID);
         }
-        else{
-            println("Got message about food or snake that does not exist")
-            println(food[foodID]);
-            println(Game.gameManager.snakeManager.snakes[snakeID])
-            //TODO: Tell client that they did not actually collect the food they thought they did
-        }
     }
 
-    fun sendFoodEaten(foodID : Int, snakeID : Int){
+    private fun sendFoodEaten(foodID: Int, snakeID: Int) {
         var snakeData = ByteBuffer.allocate(14);
         snakeData.order(ByteOrder.LITTLE_ENDIAN)
         snakeData.putChar('a')
@@ -55,27 +57,21 @@ class FoodManager : TimerTask() {
         snakeData.putInt(snakeID)
 
         snakeData.flip()
-        Game.server.tcpHandler.broadcastToOthers(snakeData, snakeID)
-
+        Game.server.tcpHandler.broadcast(snakeData, snakeID)
     }
 
-    fun getAllFoodBuffer() : ByteBuffer{
+    fun getAllFoodBuffer(): ByteBuffer {
         val numFood = food.size;
-        var foodList = ByteBuffer.allocate(2 + 12 * numFood);
+        var foodList = ByteBuffer.allocate(2 + Food.BUFFER_LENGTH * numFood);
         foodList.order(ByteOrder.LITTLE_ENDIAN)
 
         foodList.putShort(numFood.toShort());
 
-        food.forEach{
-            foodList.putInt(it.key)
-            foodList.put(it.value.getByteBuffer())
+        food.forEach {
+            foodList.put(it.value.getByteBuffer());
         }
 
         foodList.flip()
         return foodList;
     }
-
-    //It might need to update stuff in the future, I don't know
-    fun update(){}
-
 }

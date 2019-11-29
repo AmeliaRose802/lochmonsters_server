@@ -1,16 +1,18 @@
+package Networking
+
+import ClientNotConnected
+import Game
+import OutOfDatePacket
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.DatagramChannel
-import java.nio.channels.SocketChannel
 
 class UDPHandler(val server: Server) {
 
     data class UDPClientData(val id: Int, var udpAddress: InetSocketAddress?, var mostRecentUDPUpdate: Long);
-
     var udpClients = mutableMapOf<Int, UDPClientData>();
-
-    var buffer = ByteBuffer.allocate(512);
+    private var buffer: ByteBuffer = ByteBuffer.allocate(512);
 
     init {
         buffer.order(ByteOrder.LITTLE_ENDIAN)
@@ -20,8 +22,8 @@ class UDPHandler(val server: Server) {
     Get a UDP packet and check if it is valid. If not discard it. If so handle it
      */
     fun getUDPPackets(socket: DatagramChannel) {
-        val address = socket.receive(buffer) as InetSocketAddress
 
+        val address = socket.receive(buffer) as InetSocketAddress
         buffer.flip()
 
         val type = buffer.char
@@ -34,7 +36,7 @@ class UDPHandler(val server: Server) {
             }
 
             //IF the UDP client is not regestered, regester it
-            if(udpClients.get(id) == null){
+            if (udpClients.get(id) == null) {
                 udpClients.put(id, UDPClientData(id, address, timestamp))
             }
 
@@ -58,11 +60,10 @@ class UDPHandler(val server: Server) {
                 }
             }
 
-        } catch (e: ClientNotConnected ) {
+        } catch (e: ClientNotConnected) {
             println(e)
             sendTerminationMessage(address)
-        }
-        catch(e: OutOfDatePacket){
+        } catch (e: OutOfDatePacket) {
         }
 
         buffer.clear()
@@ -78,19 +79,19 @@ class UDPHandler(val server: Server) {
 
     }
 
-    private fun handlePosUpdate(id: Int, data: ByteBuffer, timestamp : Long) {
-        Game.gameManager.snakeManager.snakes[id]?.updatePosition(data, timestamp);
+    private fun handlePosUpdate(id: Int, data: ByteBuffer, timestamp: Long) {
+        Game.snakeManager.snakes[id]?.updatePosition(data, timestamp);
         sendPositionUpdate(id);
     }
 
     //Sends position update for client specified by id to all clients (including origional sender)
     private fun sendPositionUpdate(id: Int) {
-        val posData = Game.gameManager.snakeManager.snakes[id]!!.getPositionByteBuffer();
+        val posData = Game.snakeManager.snakes[id]!!.getPositionByteBuffer();
         broadcastToOthers(posData, id)
     }
 
-    private fun broadcastToOthers(message: ByteBuffer, id: Int){
-        udpClients.filter { it.key != id }.forEach{
+    private fun broadcastToOthers(message: ByteBuffer, id: Int) {
+        udpClients.filter { it.key != id }.forEach {
             server.udpSocketChannel.send(message, it.value.udpAddress);
         }
     }
