@@ -41,7 +41,6 @@ class FoodManager : TimerTask() {
         val foodID = message.int;
         val snakeID = message.int;
 
-        println("Got message about food id = $foodID snakeID = $snakeID")
         if (food.containsKey(foodID) && Game.snakeManager.snakes.containsKey(snakeID)) {
             food.remove(foodID);
             Game.snakeManager.snakes[snakeID]!!.addSegment()
