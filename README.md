@@ -2,11 +2,11 @@
 
 ---
 
-###Table of Contents
+### Table of Contents
 
 
 ---
-###From Client to Server
+### From Client to Server
 
 ---
 #### TCP Messages
@@ -17,7 +17,7 @@
 |Ate Food | a | Snake ate food
 |Termination | e | Client is leaving game
 ---
-#####Connect
+##### Connect
 
 | c | colorR | ColorG | ColorB  | Name
 |---------- |---|---|---|-----------|
@@ -28,7 +28,7 @@
 **Length:** 40 Bytes
 
 ---
-#####Ate Food
+##### Ate Food
 
 | a | FoodID | snakeID |
 |----|------ |--------|
@@ -39,7 +39,7 @@
 **Length:** 10 Bytes
 
 ---
-#####Termination
+##### Termination
 
 | e | 
 |----|
@@ -59,7 +59,7 @@
 
 ---
 
-#####Position Update
+##### Position Update
 
 | p | id | timestamp | xPosition | yPosition | xDirection | yDirection  
 |---------|------- |-----------| ----------|-----------|------------|-----------|
@@ -72,7 +72,7 @@
 ---
 
 
-###From Server to Client
+### From Server to Client
 
 ---
 #### TCP Messages
@@ -84,7 +84,7 @@
 |New Food | f | Server has spawned new food
 |Food Eaten | a | Another snake ate some food
 
-#####Connect Reply
+##### Connect Reply
 Give the new snake its starting position and send it the current game state
 connection reply
 
@@ -118,33 +118,37 @@ id (4) | string (32) | short (2) | short (2) | short (2) | short (2) | float (4)
 | id | xPosition | yPosition |
 |----|-----------|-----------|
 |int (4) | float (4) | float (4)|
+
 **Length:** 12
 
 ---
 
-#####New Snake
+##### New Snake
 
 New snake joined game
 
 | char n | snake data
 |--------| ----------|
 |char (2) | SnakeData (60) | 
+
 **Length:** 62
 
 ---
-#####New Food
+##### New Food
 
 | char f | Food Data
 |--------| ----------|
-|char (2) | FoodData (12) | 
+|char (2) | FoodData (12) |
+
 **Length:** 14
 
 ---
-#####Food Eaten
+##### Food Eaten
 
 | a | FoodID | snakeID |
 |----|------ |--------|
 |char (2) | int (4) | int (4)
+
 **Length:** 10
 
 ---
@@ -154,8 +158,9 @@ New snake joined game
 |---------- |----|-----------|
 |Position Update | u | Another snake has changed direction 
 |Bye | b | The server is terminating the connection 
+
 ---
-#####Position Update
+##### Position Update
 
 | p        | id | timestamp | xPosition | yPosition | xDirection | yDirection  
 |---------|----|------------|----------|-----------|------------|-----------|
