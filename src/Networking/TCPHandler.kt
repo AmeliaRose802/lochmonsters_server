@@ -28,7 +28,6 @@ class TCPHandler(val server: Server) {
         buffer.flip()
 
         try {
-
             when (buffer.char) {
                 'a' -> {
                     Game.foodManager.foodEaten(buffer);
@@ -40,6 +39,9 @@ class TCPHandler(val server: Server) {
                 }
                 'e' -> {
                     closeConnection(socket)
+                }
+                't' -> {
+                    socket.write(Game.timeSync.getTimeReply())
                 }
             }
         } catch (e: Exception) {
@@ -81,7 +83,7 @@ class TCPHandler(val server: Server) {
         reply.putChar('c')
         reply.putInt(id)
         reply.put(pos.getByteBuffer())
-        reply.putLong(Game.startTime)
+        reply.putLong(System.currentTimeMillis() - Game.startTime)
         reply.put(gameState);
 
         reply.flip()

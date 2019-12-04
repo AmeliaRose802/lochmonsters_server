@@ -16,7 +16,8 @@ class Server(private val portNum: Int) {
     val udpHandler = UDPHandler(this);
 
     init {
-        val host = InetAddress.getByName("localhost")
+        val host = InetAddress.getLocalHost().hostAddress
+        println("Host IP: "+host);
         serverSocketChannel.configureBlocking(false)
         serverSocketChannel.bind(InetSocketAddress(host, portNum))
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT)

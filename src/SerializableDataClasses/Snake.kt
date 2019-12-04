@@ -88,7 +88,6 @@ data class Snake(var id: Int = -1, var name: String = "NONE", var color: Color =
         val gameTime = System.currentTimeMillis() - Game.startTime
         val elapsedTime = (gameTime - timestamp)/1000f
 
-
         val predictedCurrentPosition = constrainToBounds( positionAtPacketSendTime + (velocity * elapsedTime))
 
         pos = predictedCurrentPosition;

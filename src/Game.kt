@@ -16,6 +16,7 @@ object Game {
     val server: Server = Server(PORT_NUM);
     var snakeManager = SnakeManager()
     var foodManager = FoodManager()
+    var timeSync = TimeSync();
 
     fun loop() {
         startTime = System.currentTimeMillis();

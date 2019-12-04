@@ -1,3 +1,6 @@
-fun main() {
-    Game.loop();
+object MainKt {
+    @JvmStatic
+    fun main(args: Array<String>) {
+        Game.loop()
+    }
 }
