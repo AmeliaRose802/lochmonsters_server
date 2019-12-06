@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="lochmonsters_server_ui">
+    <output-path>$PROJECT_DIR$/out/artifacts/lochmonsters_server_ui</output-path>
+    <root id="root">
+      <element id="archive" name="lochmonsters_server_ui.jar">
+        <element id="module-output" name="lochmonsters_server_ui" />
+      </element>
+    </root>
+  </artifact>
+</component>
