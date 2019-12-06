@@ -79,3 +79,8 @@ Char code | Length | Meaning
 
 UDP Messages From Client to Networking.Server
 Char code | Length | Meaning
+
+
+Client left game
+char l | int id
+length 6

@@ -60,9 +60,21 @@ class TCPHandler(val server: Server) {
             Game.snakeManager!!.snakes.remove(it)
             server.udpHandler.udpClients.remove(it);
             tcpClients.remove(it);
+            notifyOthersClientLeft(it)
         }
 
         socket.close()
+    }
+
+    private fun notifyOthersClientLeft(id : Int){
+        val message: ByteBuffer = ByteBuffer.allocate(6)
+        message.order(ByteOrder.LITTLE_ENDIAN)
+        message.putChar('l')
+        message.putInt(id)
+
+        message.flip()
+
+        broadcast(message, id)
     }
 
     //Add a new player to the game

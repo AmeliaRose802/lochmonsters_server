@@ -14,8 +14,10 @@
 | MessageName |char | Meaning |
 |---------- |----|-----------|
 |Connect | c | Request to join game
-|Ate SerializableDataClasses.Food | a | SerializableDataClasses.Snake ate food
+|Ate Food | a | Snake ate food
+|Time Sync | t | Client needs time sync
 |Termination | e | Client is leaving game
+
 ---
 ##### Connect
 
@@ -39,6 +41,19 @@
 **Length:** 10 Bytes
 
 ---
+
+##### Time
+
+| t | 
+|----|
+|char (2)
+
+**Meaning:** Client is requesting time sync
+
+**Length:** 2 Bytes
+
+
+---
 ##### Termination
 
 | e | 
@@ -49,7 +64,7 @@
 
 **Length:** 2 Bytes
 
-
+---
 
 #### UDP Messages
 
@@ -83,6 +98,8 @@
 |New Snake | n | A new snake has joined the game
 |New Food | f | Networking.Server has spawned new food
 |Food Eaten | a | Another snake ate some food
+|Time Sync Reply | t | Sending current game time
+|Left game | l | Another client has left the game
 
 ##### Connect Reply
 Give the new snake its starting position and send it the current game state
@@ -151,6 +168,23 @@ New snake joined game
 |char (2) | int (4) | int (4)
 
 **Length:** 10
+
+##### Time Sync Reply
+
+| t         | currentGameTime |
+|----------|---------------- |
+|char (2) | long (8)        |
+
+**Length:** 10
+
+---
+##### Left Game
+
+| l         | id |
+|----------|---------------- |
+|char (2) | int (4)        |
+
+**Length:** 6
 
 ---
 #### UDP Messages
