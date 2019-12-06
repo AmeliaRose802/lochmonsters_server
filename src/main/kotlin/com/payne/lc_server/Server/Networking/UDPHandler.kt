@@ -70,6 +70,11 @@ class UDPHandler(val server: Server) {
 
     }
 
+    public fun closeConnection(id : Int){
+        sendTerminationMessage(udpClients[id]!!.udpAddress!!)
+        udpClients.remove(id);
+    }
+
     private fun sendTerminationMessage(client: InetSocketAddress) {
         var termination = ByteBuffer.allocate(2)
         termination.order(ByteOrder.LITTLE_ENDIAN)

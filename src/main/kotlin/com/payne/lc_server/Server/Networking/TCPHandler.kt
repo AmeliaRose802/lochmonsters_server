@@ -32,6 +32,12 @@ class TCPHandler(val server: Server) {
                 'a' -> {
                     Game.foodManager!!.foodEaten(buffer);
                 }
+                'h' -> {
+                    Game.snakeManager.handleCollision(buffer);
+                }
+                'r' -> {
+                    Game.snakeManager.handleHitBy(buffer);
+                }
                 'c' -> {
                     val id = addClient(buffer, socket)
                     sendConnectReply(socket, id)
@@ -43,6 +49,7 @@ class TCPHandler(val server: Server) {
                 't' -> {
                     socket.write(Game.timeSync.getTimeReply())
                 }
+
             }
         } catch (e: Exception) {
             println("ERROR: $e")
@@ -62,8 +69,13 @@ class TCPHandler(val server: Server) {
             tcpClients.remove(it);
             notifyOthersClientLeft(it)
         }
-
         socket.close()
+    }
+
+    public fun closeConnection(id: Int) {
+        tcpClients[id]!!.close()
+        tcpClients.remove(id)
+        notifyOthersClientLeft(id)
     }
 
     private fun notifyOthersClientLeft(id : Int){
