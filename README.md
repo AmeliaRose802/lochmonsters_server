@@ -5,6 +5,17 @@
 This is the server for the loch monsters game. For client code head over to the
 [Loch Monsters repo](https://github.com/AmeliaRose802/lochmonsters)
 
+### Instructions
+Download the [.jar file](https://github.com/AmeliaRose802/lochmonsters_server/blob/master/lochmonsters_server_ui.jar). Double click to open. (https://www.java.com/en/download/). After launching the jar click Start Server. The server will bind to port 5555. Record the IP displayed. You may need to expand the window to see the full IP. 
+
+#####Debugging:
+
+*No JVM*
+If the file does not open make sure that the Java Runtime Environment is installed. [You can download it here ]
+
+*Port 5555 already bound*
+If port 5555 is already bound you must download the project and manually change the PORT_NUM const in Game.kt. 
+
 ---
 ### From Client to Server
 
