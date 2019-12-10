@@ -76,6 +76,7 @@ class UDPHandler(val server: Server) {
     }
 
     private fun sendTerminationMessage(client: InetSocketAddress) {
+        println("Sending termination message on UDP");
         var termination = ByteBuffer.allocate(2)
         termination.order(ByteOrder.LITTLE_ENDIAN)
         termination.putChar('b');

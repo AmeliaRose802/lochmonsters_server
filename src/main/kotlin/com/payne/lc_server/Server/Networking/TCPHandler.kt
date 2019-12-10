@@ -47,6 +47,7 @@ class TCPHandler(val server: Server) {
                     sendNewClientData(id)
                 }
                 'e' -> {
+                    println("Got e message");
                     closeConnection(socket)
                 }
                 't' -> {
@@ -70,7 +71,7 @@ class TCPHandler(val server: Server) {
             Game.snakeManager!!.snakes.remove(it)
             server.udpHandler.udpClients.remove(it);
             tcpClients.remove(it);
-            notifyOthersClientLeft(it)
+            notifyOthersClientLeft(it);
         }
         socket.close()
     }
@@ -81,7 +82,7 @@ class TCPHandler(val server: Server) {
         notifyOthersClientLeft(id)
     }
 
-    private fun notifyOthersClientLeft(id : Int){
+    public fun notifyOthersClientLeft(id : Int){
         val message: ByteBuffer = ByteBuffer.allocate(6)
         message.order(ByteOrder.LITTLE_ENDIAN)
         message.putChar('l')
@@ -172,6 +173,18 @@ class TCPHandler(val server: Server) {
             }catch ( e: ClosedChannelException){ }
 
         }
+    }
+
+    fun notifyClientItDied(id: Int){
+        println("Telling client it died id: $id");
+        val message: ByteBuffer = ByteBuffer.allocate(6)
+        message.order(ByteOrder.LITTLE_ENDIAN)
+        message.putChar('l')
+        message.putInt(id)
+
+        message.flip()
+
+        tcpClients[id]!!.write(message);
     }
 
 }

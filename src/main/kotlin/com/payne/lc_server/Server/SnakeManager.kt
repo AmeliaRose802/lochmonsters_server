@@ -30,12 +30,9 @@ class SnakeManager() {
 
 
         if(hitBy.has(hitID) && hitBy.get(hitID) == hitterID){
-            println("$hitterID hit $hitID");
-            println("Found collision match on hit");
             handleCollision(hitterID, hitID);
         }
         else if(hits.has(hitID) && hits.get(hitID) == hitterID){
-            println("Found collision that other also thought was hit");
             handleMutualHit(hitterID, hitID);
         }
 
@@ -50,12 +47,9 @@ class SnakeManager() {
 
 
         if(hits.has(hitterID) && hits.get(hitterID) == hitID){
-            println("$hitID was hit  by $hitterID");
-            println("Found collion match on hit by")
             handleCollision(hitterID, hitID);
         }
         else if(hitBy.has(hitterID) && hitBy.get(hitterID) == hitID){
-            println("Found collision that other also thought was a hit by");
             handleMutualHit(hitterID, hitID);
         }
         hitBy.add(hitterID, hitID);
@@ -75,10 +69,9 @@ class SnakeManager() {
 
         //If the snake hit was longer then make it harder for the hitter to win
         if(hitLength > hitterLength){
-            hitterWinThreshold += min(LENGTH_BOUNUS * (hitLength - hitterLength), .9f);
+            hitterWinThreshold += max(min(LENGTH_BOUNUS * (hitLength - hitterLength), .9f), .1f);
         }
 
-        println("To win random number must be greater then $hitterWinThreshold Hitter length $hitterLength hit length $hitLength")
         if(Random.nextFloat() > hitterWinThreshold){
             removeSnake(hitID)
         }
@@ -91,23 +84,21 @@ class SnakeManager() {
 
         var firstWins = .5;
 
-        firstWins += min((snakes[id2]!!.length -  snakes[id1]!!.length) * LENGTH_BOUNUS, .9f);
+        firstWins += max(min((snakes[id2]!!.length -  snakes[id1]!!.length) * LENGTH_BOUNUS, .9f), .1f);
 
-        println("First wins threshold $firstWins")
         if(Random.nextFloat() > firstWins){
-            println("removing second, snake $id2");
             removeSnake(id2)
         }
         else{
-            println("removing first,  snake $id1");
             removeSnake(id1)
         }
     }
 
     private fun removeSnake(id : Int){
-        Game.server.tcpHandler.closeConnection(id);
-        Game.server.udpHandler.closeConnection(id);
-        snakes.remove(id);
+        Game.server.tcpHandler.notifyClientItDied(id);
+        //Game.server.tcpHandler.closeConnection(id);
+        //Game.server.udpHandler.closeConnection(id);
+        //snakes.remove(id);
     }
 
     fun getAllSnakesBuffer(id: Int) : ByteBuffer{
