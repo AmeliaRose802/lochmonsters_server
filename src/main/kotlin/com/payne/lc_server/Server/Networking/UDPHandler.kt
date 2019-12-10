@@ -49,8 +49,6 @@ class UDPHandler(val server: Server) {
                 throw OutOfDatePacket("UDP Packet older then most recent message for snake");
             }
 
-            //println("Game time: "+((System.currentTimeMillis() - Game.startTime)/1000f)+". Time stamp: "+timestamp/1000f+". Elapsed Time: " + (((System.currentTimeMillis() - Game.startTime) - timestamp)/1000f))
-
             udpClient.mostRecentUDPUpdate = timestamp
 
             //It is a valid packet
@@ -73,6 +71,8 @@ class UDPHandler(val server: Server) {
     public fun closeConnection(id : Int){
         sendTerminationMessage(udpClients[id]!!.udpAddress!!)
         udpClients.remove(id);
+        Game.server.tcpHandler.notifyOthersClientLeft(id);
+        Game.snakeManager.snakes.remove(id);
     }
 
     private fun sendTerminationMessage(client: InetSocketAddress) {

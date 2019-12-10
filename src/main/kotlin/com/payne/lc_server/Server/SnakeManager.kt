@@ -27,13 +27,13 @@ class SnakeManager() {
         val hitterID = message.int
         val hitID = message.int
 
-
-
         if(hitBy.has(hitID) && hitBy.get(hitID) == hitterID){
             handleCollision(hitterID, hitID);
+            hitBy.remove(hitID)
         }
         else if(hits.has(hitID) && hits.get(hitID) == hitterID){
             handleMutualHit(hitterID, hitID);
+            hits.remove(hitID)
         }
 
         hits.add(hitterID, hitID)
@@ -44,12 +44,12 @@ class SnakeManager() {
         val hitID = message.int;
         val hitterID = message.int;
 
-
-
         if(hits.has(hitterID) && hits.get(hitterID) == hitID){
             handleCollision(hitterID, hitID);
+            hits.remove(hitterID)
         }
         else if(hitBy.has(hitterID) && hitBy.get(hitterID) == hitID){
+            hitBy.remove(hitterID);
             handleMutualHit(hitterID, hitID);
         }
         hitBy.add(hitterID, hitID);
@@ -84,7 +84,10 @@ class SnakeManager() {
 
         var firstWins = .5;
 
-        firstWins += max(min((snakes[id2]!!.length -  snakes[id1]!!.length) * LENGTH_BOUNUS, .9f), .1f);
+        if(snakes.containsKey(id1) && snakes.containsKey(id2)){
+            firstWins += max(min((snakes[id2]!!.length -  snakes[id1]!!.length) * LENGTH_BOUNUS, .9f), .1f);
+        }
+
 
         if(Random.nextFloat() > firstWins){
             removeSnake(id2)
@@ -96,9 +99,6 @@ class SnakeManager() {
 
     private fun removeSnake(id : Int){
         Game.server.tcpHandler.notifyClientItDied(id);
-        //Game.server.tcpHandler.closeConnection(id);
-        //Game.server.udpHandler.closeConnection(id);
-        //snakes.remove(id);
     }
 
     fun getAllSnakesBuffer(id: Int) : ByteBuffer{

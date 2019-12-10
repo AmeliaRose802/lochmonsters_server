@@ -11,6 +11,12 @@ class TimeLimitedMap(private val ttl : Long) {
     fun get(key : Int) : Int?{
         return map[key]!!.value;
     }
+
+    fun remove(key : Int){
+        if(map.containsKey(key)){
+            map.remove(key);
+        }
+    }
     fun has(key : Int) : Boolean{
         return map.containsKey(key)
     }

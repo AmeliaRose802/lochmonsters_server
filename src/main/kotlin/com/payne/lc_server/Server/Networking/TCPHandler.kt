@@ -47,7 +47,6 @@ class TCPHandler(val server: Server) {
                     sendNewClientData(id)
                 }
                 'e' -> {
-                    println("Got e message");
                     closeConnection(socket)
                 }
                 't' -> {
@@ -176,15 +175,16 @@ class TCPHandler(val server: Server) {
     }
 
     fun notifyClientItDied(id: Int){
-        println("Telling client it died id: $id");
-        val message: ByteBuffer = ByteBuffer.allocate(6)
-        message.order(ByteOrder.LITTLE_ENDIAN)
-        message.putChar('l')
-        message.putInt(id)
+        if(tcpClients.containsKey(id)){
+            val message: ByteBuffer = ByteBuffer.allocate(6)
+            message.order(ByteOrder.LITTLE_ENDIAN)
+            message.putChar('l')
+            message.putInt(id)
 
-        message.flip()
+            message.flip()
 
-        tcpClients[id]!!.write(message);
+            tcpClients[id]!!.write(message);
+        }
     }
 
 }
