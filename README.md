@@ -2,8 +2,8 @@
 
 ---
 
-### Table of Contents
-
+This is the server for the loch monsters game. For client code head over to the
+[Loch Monsters repo](https://github.com/AmeliaRose802/lochmonsters)
 
 ---
 ### From Client to Server
