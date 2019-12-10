@@ -16,7 +16,10 @@
 |Connect | c | Request to join game
 |Ate Food | a | Snake ate food
 |Time Sync | t | Client needs time sync
+|Hit | h | Snake hit other client
+|Hit By | r | Other client hit snake
 |Termination | e | Client is leaving game
+
 
 ---
 ##### Connect
@@ -36,7 +39,7 @@
 |----|------ |--------|
 |char (2) | int (4) | int (4)
 
-**Meaning:** SerializableDataClasses.Snake ___ ate food ___
+**Meaning:** Snake ___ ate food ___
 
 **Length:** 10 Bytes
 
@@ -51,6 +54,29 @@
 **Meaning:** Client is requesting time sync
 
 **Length:** 2 Bytes
+
+ ---
+##### Hit
+
+| h | HitterID | HitID 
+|----|---| --- |
+|char (2)| int (4) | int (4)
+
+**Meaning:** Client hit another snake
+
+**Length:** 10 Bytes
+
+---
+
+##### Hit By
+
+| r | HitID | HitterID 
+|----|---| --- |
+|char (2)| int (4) | int (4)
+
+**Meaning:** Client was hit by another snake
+
+**Length:** 10 Bytes
 
 
 ---

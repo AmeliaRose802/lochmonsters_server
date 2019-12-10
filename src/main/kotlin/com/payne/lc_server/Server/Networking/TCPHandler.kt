@@ -5,6 +5,7 @@ import SerializableDataClasses.Snake
 import SerializableDataClasses.Vector2
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.channels.ClosedChannelException
 import java.nio.channels.SocketChannel
 
 class TCPHandler(val server: Server) {
@@ -28,12 +29,14 @@ class TCPHandler(val server: Server) {
         buffer.flip()
 
         try {
-            when (buffer.char) {
+            val c = buffer.char;
+
+            when (c) {
                 'a' -> {
                     Game.foodManager!!.foodEaten(buffer);
                 }
                 'h' -> {
-                    Game.snakeManager.handleCollision(buffer);
+                    Game.snakeManager.handleHit(buffer);
                 }
                 'r' -> {
                     Game.snakeManager.handleHitBy(buffer);
@@ -154,15 +157,20 @@ class TCPHandler(val server: Server) {
     fun broadcast(message: ByteBuffer, id: Int) {
 
         tcpClients.filter { it.key != id }.forEach {
-            it.value.write((message))
-            message.flip()
+            try{
+                it.value.write((message))
+                message.flip()
+            }catch ( e: ClosedChannelException){ }
         }
     }
 
     fun broadcast(message: ByteBuffer) {
         tcpClients.forEach {
-            it.value.write((message))
-            message.flip()
+            try{
+                it.value.write((message))
+                message.flip()
+            }catch ( e: ClosedChannelException){ }
+
         }
     }
 

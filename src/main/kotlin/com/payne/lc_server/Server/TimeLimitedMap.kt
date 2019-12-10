@@ -8,8 +8,11 @@ class TimeLimitedMap(private val ttl : Long) {
         map[key] = TimedMapEntry(value, end)
     }
 
-    fun get(key : Int) : Int{
+    fun get(key : Int) : Int?{
         return map[key]!!.value;
+    }
+    fun has(key : Int) : Boolean{
+        return map.containsKey(key)
     }
 
     fun update(){

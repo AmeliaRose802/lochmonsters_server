@@ -23,7 +23,7 @@ class FoodManager : TimerTask() {
     //Spawn food at a regular interval until the maximum amount of food is reached
     override fun run() {
         if (food.size < MAX_FOOD) {
-            food[nextID] = Food(nextID, Vector2.randInRange(Game.fieldSize));
+            food[nextID] = Food(nextID, Vector2.randInRange(Game.fieldSize - 1.0f));
             sendFoodPos(nextID);
             nextID++;
         }
@@ -43,6 +43,8 @@ class FoodManager : TimerTask() {
         val foodID = message.int;
         val snakeID = message.int;
 
+        println("Food $foodID eaten by $snakeID")
+
         if (food.containsKey(foodID) && Game.snakeManager?.snakes!!.containsKey(snakeID)) {
             food.remove(foodID);
             Game.snakeManager!!.snakes[snakeID]!!.addSegment()
@@ -58,7 +60,7 @@ class FoodManager : TimerTask() {
         snakeData.putInt(snakeID)
 
         snakeData.flip()
-        Game.server.tcpHandler.broadcast(snakeData, snakeID)
+        Game.server.tcpHandler.broadcast(snakeData)
     }
 
     fun getAllFoodBuffer(): ByteBuffer {

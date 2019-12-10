@@ -24,6 +24,10 @@ data class Vector2(var x: Float, var y: Float){
         return Vector2(x - other.x, y - other.y);
     }
 
+    operator fun minus(other : Float): Vector2 {
+        return Vector2(x - other, y - other);
+    }
+
     operator fun times(other : Float): Vector2 {
         return Vector2(x * other, y * other);
     }
